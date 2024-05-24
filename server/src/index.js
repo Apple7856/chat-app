@@ -34,6 +34,7 @@ app.use("/api/message", messageRouter);
 app.use("/api/users", userRouter);
 app.use("/api/group", groupRouter);
 
+// error handler
 app.use((err, req, res, next) => {
   const errorStatus = err.status || 500;
   const errorMessage = err.message || "Somthing went wrong!";
