@@ -16,6 +16,7 @@ function App() {
   const [userData, setUserData] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [selectData, setSelectData] = useState({});
+  const [members, setMembers] = useState([]);
 
   useEffect(() => {
     const token = JSON.parse(localStorage.getItem("token"));
@@ -67,6 +68,8 @@ function App() {
         setSelectData,
         accessToken,
         setAccessToken,
+        members,
+        setMembers,
       }}
     >
       <RouterProvider router={router} />

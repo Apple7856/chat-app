@@ -23,29 +23,26 @@ io.on("connection", (socket) => {
   //when ceonnect
   console.log("a user connected.", users);
 
-  //take userId and socketId from user
-  socket.on("addUser", (userId) => {
-    addUser(userId, socket.id);
-    console.log(users);
-    io.emit("getUsers", users);
+  socket.on("setup", (userData) => {
+    socket.join(userData._id);
+    socket.emit("connected");
   });
 
-  //send and get message
-  socket.on("sendMessage", ({ senderId, receiverId, text, user }) => {
-    const userID = getUser(receiverId);
-    console.log({ users, senderId, receiverId, text, user });
-    io.to(userID.socketId).emit("getMessage", {
-      senderId,
-      text,
-      user,
+  socket.on("join chat", (room) => {
+    socket.join(room);
+    console.log("user join the room", room);
+  });
+
+  socket.on("new message", (newMessageRecieved) => {
+    let members = newMessageRecieved.members;
+    if (!newMessageRecieved.members)
+      return console.log("chat users not defined");
+
+    members.forEach((user) => {
+      if (user._id === newMessageRecieved.sender_id._id) return;
+      delete newMessageRecieved.members;
+      socket.in(user._id).emit("message recieved", newMessageRecieved);
     });
-  });
-
-  //when disconnect
-  socket.on("disconnect", () => {
-    console.log("a user disconnected!");
-    removeUser(socket.id);
-    io.emit("getUsers", users);
   });
 });
 

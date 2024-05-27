@@ -7,10 +7,10 @@ import { io } from "socket.io-client";
 const ChatBox = ({ handleShowUserDetails, chatId }) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [arrivalMessage, setArrivalMessage] = useState(null);
-  const socket = useRef();
+  const [socket, setSocket] = useState(io("ws://localhost:4000"));
 
-  const { selectData, userData, accessToken } = useContext(UserContext);
+  const { selectData, userData, accessToken, members } =
+    useContext(UserContext);
 
   const config = {
     headers: {
@@ -19,40 +19,17 @@ const ChatBox = ({ handleShowUserDetails, chatId }) => {
     },
   };
 
-  // useEffect(() => {
-  //   socket.current = io("ws://localhost:4000");
-  // }, []);
-
-  // useEffect(() => {
-  //   socket.current.on("getMessage", (data) => {
-  //     console.log(data);
-  //     setArrivalMessage({
-  //       sender_id: data.senderId,
-  //       chat_id: chatId,
-  //       msg: data.text,
-  //       user: data.user,
-  //     });
-  //   });
-  // }, [socket.current]);
-
-  // useEffect(() => {
-  //   arrivalMessage &&
-  //     selectData._id === arrivalMessage.sender_id &&
-  //     setMessages((prev) => [...prev, arrivalMessage]);
-  // }, [arrivalMessage, chatId]);
-
-  // useEffect(() => {
-  //   socket.current.emit("addUser", userData._id);
-  //   socket.current.on("getUsers", (users) => {
-  //     console.log(users);
-  //   });
-  // }, [chatId, userData]);
+  useEffect(() => {
+    socket.emit("setup", userData);
+    socket.on("connected", () => console.log("connected"));
+  }, [chatId]);
 
   useEffect(() => {
     async function getAllMessage() {
       try {
         const msg = await newRequest.get(`/message/${chatId}`, config);
         setMessages(msg.data);
+        socket.emit("join chat", chatId);
       } catch (error) {
         console.log(error);
       }
@@ -60,23 +37,20 @@ const ChatBox = ({ handleShowUserDetails, chatId }) => {
     getAllMessage();
   }, [chatId]);
 
+  useEffect(() => {
+    socket.on("message recieved", (newMessageRecieved) => {
+      console.log({ newMessageRecieved });
+      if (chatId === newMessageRecieved.chat_id) {
+        setMessages([...messages, newMessageRecieved]);
+      }
+    });
+  });
+
   const handleSendMessage = async () => {
     let data = {
       chatId: chatId,
       msg: message,
     };
-    // socket.current.emit("sendMessage", {
-    //   senderId: userData._id,
-    //   receiverId: selectData._id,
-    //   text: message,
-    //   user: [
-    //     {
-    //       _id: userData._id,
-    //       profile_img: userData.profile_img,
-    //       full_name: userData.full_name,
-    //     },
-    //   ],
-    // });
     const newMessage = await newRequest.post(`/message`, data, config);
     const resData = {
       _id: newMessage.data._id,
@@ -90,6 +64,8 @@ const ChatBox = ({ handleShowUserDetails, chatId }) => {
     };
     setMessages([...messages, resData]);
     setMessage("");
+    resData.members = members;
+    socket.emit("new message", resData);
   };
 
   return (

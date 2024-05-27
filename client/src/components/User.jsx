@@ -1,16 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
-import newRequest from "../utils/newRequest";
 
 const User = ({ item, handleUser }) => {
   const [user, setUser] = useState({});
-  const { userData } = useContext(UserContext);
+  const { userData, setMembers } = useContext(UserContext);
 
   useEffect(() => {
     if (!item.isGroupChat) {
       if (item.full_name) {
         setUser(item);
       } else {
+        setMembers(item.members);
         const findUser = item.members.find((elem) => elem._id !== userData._id);
         findUser.chatId = item._id;
         setUser(findUser);
