@@ -8,18 +8,34 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import "./App.scss";
 import { createContext, useEffect, useState } from "react";
+import newRequest from "./utils/newRequest";
 
 export const UserContext = createContext();
 
 function App() {
   const [userData, setUserData] = useState("");
-
+  const [accessToken, setAccessToken] = useState("");
   const [selectData, setSelectData] = useState({});
 
   useEffect(() => {
-    const data = localStorage.getItem("res");
-    if (JSON.parse(data)) {
-      setUserData(JSON.parse(data));
+    const token = JSON.parse(localStorage.getItem("token"));
+    setAccessToken(token);
+    if (token) {
+      async function loginUserData() {
+        try {
+          const config = {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          };
+          const response = await newRequest.get("/users/login-user", config);
+          setUserData(response.data);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      loginUserData();
     }
   }, []);
 
@@ -49,6 +65,8 @@ function App() {
         setUserData,
         selectData,
         setSelectData,
+        accessToken,
+        setAccessToken,
       }}
     >
       <RouterProvider router={router} />

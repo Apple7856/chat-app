@@ -1,17 +1,17 @@
 import express from "express";
 import {
-  findAllUsers,
+  findListArrayUsers,
   findUser,
+  loginUser,
   findUsers,
-  findMatchUser,
 } from "../controllers/userController.js";
+import protect from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", findUsers);
-router.get("/all", findAllUsers);
-router.get("/filter", findMatchUser);
-router.get("/:userId", findUser);
-// router.get("/", findMatchUser);
+router.get("/", protect, findUsers);
+router.get("/login-user", protect, loginUser);
+router.get("/list", protect, findListArrayUsers);
+router.get("/:userId", protect, findUser);
 
 export default router;

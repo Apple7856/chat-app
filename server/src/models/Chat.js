@@ -4,10 +4,17 @@ const chatSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      unique: true,
+      trim: true,
     },
-    members: Array,
+    isGroupChat: { type: Boolean, default: false },
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    latestMessage: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Message",
+    },
+    groupAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
+
   { timestamps: true }
 );
 

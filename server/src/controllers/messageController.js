@@ -1,9 +1,13 @@
 import Message from "../models/Message.js";
-import mongoose from "mongoose";
 
-export const createMessage = async (req, res) => {
-  const { chatId, senderId, msg } = req.body;
-  const newMessage = new Message({ chat_id: chatId, sender_id: senderId, msg });
+export const sendMessage = async (req, res) => {
+  const { chatId, msg } = req.body;
+
+  const newMessage = new Message({
+    sender_id: req.user,
+    msg,
+    chat_id: chatId,
+  });
   try {
     const response = await newMessage.save();
     res.status(200).json(response);
@@ -12,33 +16,12 @@ export const createMessage = async (req, res) => {
   }
 };
 
-export const getMessages = async (req, res) => {
+export const allMessages = async (req, res) => {
   const { chatId } = req.params;
   try {
-    const messages = await Message.aggregate([
-      {
-        $match: { chat_id: chatId },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "sender_id",
-          foreignField: "_id",
-          as: "user",
-        },
-      },
-      {
-        $project: {
-          createdAt: 0,
-          updatedAt: 0,
-          "user.createdAt": 0,
-          "user.email": 0,
-          "user.contact_no": 0,
-          "user.password": 0,
-          "user.updatedAt": 0,
-        },
-      },
-    ]);
+    const messages = await Message.find({ chat_id: chatId })
+      .select("-createdAt -updatedAt")
+      .populate("sender_id", "profile_img full_name");
     res.status(200).json(messages);
   } catch (error) {
     res.status(200).json(error);

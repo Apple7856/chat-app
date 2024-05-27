@@ -4,6 +4,7 @@ import upload from "../utils/uploadImg.js";
 
 const router = express.Router();
 
+// router.route("/login").get(()=>{}).post(()=>{})
 router.post("/login", login);
 router.post("/register", upload.single("profile_img"), register);
 

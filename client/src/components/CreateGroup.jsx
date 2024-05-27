@@ -6,19 +6,25 @@ import { UserContext } from "../App";
 const CreateGroup = ({ setOpen }) => {
   const [data, setData] = useState([]);
 
-  const { userData } = useContext(UserContext);
+  const { userData, accessToken } = useContext(UserContext);
 
   const [newGroup, setNewGroup] = useState({
     groupName: "",
     users: [],
   });
 
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  };
+
   useEffect(() => {
     async function getUsers() {
       try {
-        const res = await newRequest.get("/users/all");
-        let filterData = res.data.filter((item) => item._id !== userData._id);
-        setData(filterData);
+        const res = await newRequest.get("/users", config);
+        setData(res.data);
       } catch (error) {
         console.log(error);
       }
@@ -44,9 +50,9 @@ const CreateGroup = ({ setOpen }) => {
       if (newGroup.groupName && newGroup.users.length >= 1) {
         const data = {
           name: newGroup.groupName,
-          members: [...newGroup.users, userData._id],
+          members: [...newGroup.users],
         };
-        const response = await newRequest.post("/group", data);
+        const response = await newRequest.post("/group", data, config);
         setOpen(false);
       } else {
         alert("Group name is required and atleast 1 user select");

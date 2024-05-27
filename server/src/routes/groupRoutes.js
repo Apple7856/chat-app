@@ -1,14 +1,19 @@
 import express from "express";
 import {
   createGroup,
+  renameGroup,
+  addUserInGroup,
+  removeUserInGroup,
   deleteGroup,
-  updateGroup,
 } from "../controllers/groupController.js";
+import protect from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", createGroup);
-router.put("/:groupId", updateGroup);
-router.delete("/:groupId", deleteGroup);
+router.post("/", protect, createGroup);
+router.put("/rename", protect, renameGroup);
+router.put("/add-user", protect, addUserInGroup);
+router.put("/remove-user", protect, removeUserInGroup);
+router.delete("/:chatId", protect, deleteGroup);
 
 export default router;

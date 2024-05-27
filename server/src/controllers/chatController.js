@@ -1,16 +1,27 @@
 import Chat from "../models/Chat.js";
+import User from "../models/User.js";
 
-export const createChat = async (req, res) => {
+export const accessChat = async (req, res) => {
   const { firstUserId, secondUserId } = req.body;
   try {
-    const chat = await Chat.findOne({
+    const isChat = await Chat.findOne({
+      isGroupChat: false,
       members: { $all: [firstUserId, secondUserId] },
-    });
-    if (chat) return res.status(200).json(chat);
+    })
+      .select("-createdAt -updatedAt")
+      .populate("members", "profile_img full_name isAdmin email contact_no")
+      .populate("groupAdmin", "profile_img full_name isAdmin");
+
+    if (isChat) return res.status(200).json(isChat);
     const newChat = new Chat({
+      isGroupChat: false,
       members: [firstUserId, secondUserId],
     });
-    const response = await newChat.save();
+    const response = await newChat
+      .save()
+      .select("-createdAt -updatedAt")
+      .populate("members", "profile_img full_name isAdmin email contact_no")
+      .populate("groupAdmin", "profile_img full_name isAdmin");
     res.status(200).json(response);
   } catch (error) {
     res.status(500).json(error);
@@ -18,11 +29,13 @@ export const createChat = async (req, res) => {
 };
 
 export const findUsersChats = async (req, res) => {
-  const userId = req.params.id;
   try {
     const chats = await Chat.find({
-      members: { $in: [userId] },
-    });
+      members: { $in: [req.user] },
+    })
+      .select("-createdAt -updatedAt")
+      .populate("members", "profile_img full_name isAdmin email contact_no")
+      .populate("groupAdmin", "profile_img full_name isAdmin");
     res.status(200).json(chats);
   } catch (error) {
     res.status(500).json(error);

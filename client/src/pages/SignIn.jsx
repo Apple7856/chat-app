@@ -19,7 +19,7 @@ const SignIn = () => {
     const config = { headers: { "Content-Type": "application/json" } };
     try {
       const res = await newRequest.post("/auth/login", user, config);
-      localStorage.setItem("res", JSON.stringify(res.data));
+      localStorage.setItem("token", JSON.stringify(res.data.token));
       setUserData(res.data);
       navigate("/");
     } catch (error) {

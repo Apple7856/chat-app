@@ -18,12 +18,22 @@ const Home = () => {
   const [filterUser, setFilterUser] = useState([]);
   const [open, setOpen] = useState(false);
 
-  const { userData, setSelectData } = useContext(UserContext);
+  const { userData, setSelectData, accessToken } = useContext(UserContext);
+
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  };
 
   async function fetchChatUser() {
-    const config = { headers: { "Content-Type": "application/json" } };
-    const res = await newRequest.get(`/chat/${userData._id}`, config);
-    setChatsUsers(res.data);
+    try {
+      const res = await newRequest.get(`/chat`, config);
+      setChatsUsers(res.data);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   useEffect(() => {
@@ -34,7 +44,8 @@ const Home = () => {
     setSearch(event.target.value);
     try {
       const response = await newRequest.get(
-        `/users/filter?name=${event.target.value}`
+        `/users/?search=${event.target.value}`,
+        config
       );
       setFilterUser(response.data);
     } catch (error) {
@@ -47,9 +58,9 @@ const Home = () => {
     setIsShow(false);
   };
 
-  const handleUser = (user, id) => {
+  const handleUser = (user) => {
     setSelectData(user);
-    setChatId(id);
+    setChatId(user.chatId);
     setIsBlank(false);
     setIsShow(true);
   };
@@ -60,8 +71,16 @@ const Home = () => {
         firstUserId: userData._id,
         secondUserId: user._id,
       };
-      await newRequest.post("/chat", data);
-      fetchChatUser();
+      const newChatUser = await newRequest.post("/chat", data, config);
+      setSelectData(
+        newChatUser.data.members.find((elem) => elem._id !== userData._id)
+      );
+      if (!chatsUsers.some((elem) => elem._id === newChatUser.data._id)) {
+        setChatsUsers([...chatsUsers, newChatUser.data]);
+      }
+      setChatId(newChatUser.data._id);
+      setIsBlank(false);
+      setIsShow(true);
       setSearch("");
     } catch (error) {
       console.log(error);

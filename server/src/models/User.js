@@ -4,7 +4,8 @@ const userSchema = new mongoose.Schema(
   {
     profile_img: {
       type: String,
-      required: true,
+      default:
+        "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
     },
     full_name: {
       type: String,
@@ -23,6 +24,11 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+    },
+    isAdmin: {
+      type: Boolean,
+      required: true,
+      default: false,
     },
   },
   {

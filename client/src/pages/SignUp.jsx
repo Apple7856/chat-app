@@ -30,7 +30,7 @@ const SignUp = () => {
         formDataToSend,
         config
       );
-      localStorage.setItem("res", JSON.stringify(res.data));
+      localStorage.setItem("token", JSON.stringify(res.data.token));
       setUserData(res.data);
       navigate("/");
     } catch (error) {
